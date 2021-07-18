@@ -1,0 +1,177 @@
+#include<stdio.h>
+
+int processes[100][4], NP, scheduler[1000], arrivedProcesses[100], NAP=0;
+unsigned int time = 0;
+
+void getSystem()
+{
+
+	printf("\Numero de processos: ");
+	scanf("%d", &NP);
+	
+	for (int i=0; i<NP; i++)
+	{
+		printf("\nTempo de uso da CPU do p%d: ", i+1);
+		scanf("%d", &processes[i][0]);
+		printf("\nTempo de excucao do p%d: ", i+1);
+		scanf("%d", &processes[i][1]);
+		processes[i][2] = processes[i][1];
+		printf("\n--------------");
+	}
+}
+void printSystem()
+{
+	printf("\n\n\t\t ----NOSSO SISTEMA---");
+	printf("\nPi:  AT BT RT");
+	for(int i=0; i<NP; i++)
+	{
+		printf("\nP%d: %d %d %d", i+1, processes[i][0], processes[i][1], processes[i][2]);
+	}
+	
+}
+	unsigned int remainTimes()
+{
+		
+		for(int i = 0; i<NP; i++) 
+	{
+		if(processes[i][2] > 0)
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
+
+void addArivedProcesses()
+{
+	for(int i=0; i<NP; i++)
+	{
+		if(processes[i][0] == time)
+		{
+			arrivedProcesses[NAP] = i;
+			NAP++;
+		}
+	}
+}
+int getSRT()
+{
+	if(NAP ==0)
+	{
+		return -1;
+	}
+	
+	unsigned int smalestRTP, smalestRTPIndex;
+	smalestRTPIndex = arrivedProcesses[0];
+	smalestRTP = processes[arrivedProcesses[0]][2];
+	for (int i=0; i<NAP; i++) 
+	{
+	if(processes[arrivedProcesses[i]][2] <  smalestRTP)
+		{
+		smalestRTP = processes[arrivedProcesses[i]][2];
+		smalestRTPIndex = arrivedProcesses[i];
+		}
+	}	
+	return  smalestRTPIndex;
+}
+void printArrivedProcesses()
+{
+	printf("\n\nProcesso de chegada(%d): ", NAP);
+	for(int i=0; i<NAP; i++)
+	{
+		printf("[%d]", arrivedProcesses[i]+1);
+	}
+}
+void removeFromArrivedProcesses(int toRun)
+{
+	int temp[100];
+	int x = 0;
+	for(int i = 0; i<NAP; i++)
+	{
+		if(arrivedProcesses[i] != toRun)
+	{
+		temp[x] = arrivedProcesses[i];
+		x++;
+	}
+}
+	NAP = NAP - 1;
+	for(int i=0; 1<NAP; i++)
+	{
+	arrivedProcesses[i] = temp[i];
+	}
+}
+void schedule()
+{
+	int x;
+	int toRun;
+	while(remainTimes())
+	{
+		addArivedProcesses();
+		printArrivedProcesses();
+		toRun = getSRT();
+		scheduler[time] = toRun;
+		processes[toRun][2]--;
+		if(processes[toRun][2]==0)
+		{
+			removeFromArrivedProcesses(toRun);
+		}
+		if(toRun==-1)
+		{
+			printf("\nRun = [IDLE], Time = %d", time);
+
+		}
+		else
+		{
+			printf("\nRun = P%d, Time = %d",toRun+1, time);
+		}
+		printSystem();
+		time++;
+	}
+}
+void printScheduler()
+{
+	printf("\n\nOrdenação: \n");
+	for(int t=0; t<time; t++)
+	{
+		if(scheduler[t] == -1)
+		{
+			printf("\n[%d, %d], IDLE", t, t+1);
+		}
+		else
+		{
+			printf("\n[%d, %d]", t, t+1, scheduler[t]+1);
+		}
+	}
+}
+void waitingTime()
+{
+	unsigned int releaseTime, t;
+	for(unsigned int i=0; i<NP; i++)
+	{
+		for(t=time-1; scheduler[t]!=i; t--);
+		releaseTime = t+1;
+		processes[i][3] = releaseTime - processes[i][0] - processes[i][1];
+	}
+	
+}
+void printWaitingTime()
+{
+	int waitingTilmeSumm = 0;
+	float AWT;
+	printf("\nTempo de espera para cada processo: \n");
+	for(unsigned int i=0; i<NP; i++)
+	{
+		printf("\nWT(P%d) = %d", i+1, processes[i][3]);
+		waitingTilmeSumm = waitingTilmeSumm + processes[i][3];
+	}
+		AWT = waitingTilmeSumm/(float)NP;
+		printf("\nTempo Médio de Espera: = %f", AWT);
+}
+main()
+{
+	getSystem();
+	printSystem();
+	schedule();
+	printScheduler();
+	waitingTime();
+	printWaitingTime();
+}
